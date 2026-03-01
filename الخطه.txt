@@ -1,0 +1,134 @@
+PHASE 0 
+I NEED YOU TO ACT AS A SENIOR FULL-STACK ARCHITECT AND PROJECT MANAGER.
+
+We are building a project called "Dream Catalyst" (Arabic name: مُحلّف الأحلام). This project MUST be designed to be a strong candidate for the Antigravity Co-creation Program prize.
+
+**Project Vision:**
+To create a bilingual web application where a user inputs a personal or professional goal (e.g., "Learn to code," "Get fit," "Start a business"). The app then uses multiple AI models (Gemini, Claude) to generate a structured, motivational, and highly detailed weekly action plan. The app will have two core innovative features that make it prize-worthy:
+1.  **Bilingual Brain:** Perfect support for both English and Arabic (RTL layout).
+2.  **Model Switching:** The user can choose which AI model generates their plan and see the difference.
+
+**Phase 1 Task: Create the Project Brief**
+Please generate a comprehensive project brief document that includes:
+
+1.  **Core User Stories (Must-Have):**
+    *   As a user, I want to sign up and log in securely (using email/password or Google OAuth).
+    *   As a user, I want to input my goal in either English or Arabic.
+    *   As a user, I want to select a "complexity level" (Simple / Detailed / Genius) for my plan.
+    *   As a user, I want to choose which AI model (Gemini 1.5 Flash for speed, or Claude 3.5 Sonnet for depth) generates my plan.
+    *   As a user, I want to receive a beautifully formatted 7-day action plan with daily tasks, resources, and motivational quotes in the language I input.
+    *   As a user, I want to save my generated plans to my profile to view them later.
+
+2.  **Technical Architecture (The "Why"):**
+    *   **Frontend:** Next.js 14 (App Router) with Tailwind CSS. Reason: Best for SEO, performance, and built-in API routes. Must support RTL (Right-to-Left) for Arabic.
+    *   **Backend:** Next.js API routes. Reason: Keeps the project simple and unified.
+    *   **Database:** PostgreSQL with Prisma ORM. Reason: Reliable, scalable, and great for relational data (Users <-> Plans).
+    *   **Authentication:** NextAuth.js (Auth.js). Reason: Secure and easy to integrate with multiple providers.
+    *   **AI Integration:** Use the Vercel AI SDK. Reason: Simplifies switching between different models (Gemini, Claude) with minimal code changes.
+    *   **UI Components:** shadcn/ui. Reason: Beautiful, accessible, and easy to customize for RTL.
+
+3.  **Data Models (Database Schema):**
+    *   **User:** id, name, email, image, createdAt.
+    *   **Plan:** id, userId, goal (string), language (enum: EN, AR), modelUsed (enum: GEMINI, CLAUDE), complexity (enum: SIMPLE, DETAILED, GENIUS), generatedContent (JSON), createdAt.
+
+4.  **AI Prompt Engineering Strategy (Crucial for Quality):**
+    *   The prompt must be dynamic. It will include the user's goal, the selected complexity, and the language.
+    *   The output must be structured as a JSON object for easy parsing. Example structure: `{ "weekTitle": "...", "days": [ { "day": 1, "title": "...", "tasks": ["..."], "resource": "...", "quote": "..." } ] }`
+    *   We will create two versions of the prompt: one optimized for Gemini (fast, concise) and one for Claude (creative, detailed).
+
+**Output Requirement:**
+Please generate this Project Brief as a structured document with clear sections. I will review it and then we will proceed to Phase 2: Rapid Prototyping.
+PHASE 1:
+FAST MODE: PROTOTYPING
+Based on the approved Project Brief, start building the functional prototype.
+
+**Immediate Action:**
+1.  Initialize a new Next.js project with Tailwind CSS, Prisma, and NextAuth.js.
+2.  Set up the basic folder structure (app/, components/, lib/, prisma/).
+3.  Configure the database connection (use a local SQLite file for prototyping).
+4.  Implement the basic authentication UI (Login/Signup page) using shadcn/ui components.
+5.  Create the main input page (`/dashboard/new`) with:
+    *   A textarea for the goal (placeholders in both EN/AR).
+    *   A dropdown for Complexity (Simple, Detailed, Genius).
+    *   A toggle/radio button for Model Selection (Gemini Flash / Claude Sonnet).
+    *   A "Generate Plan" button.
+6.  Create a basic API route (`/api/generate-plan`) that currently returns MOCK data (a hardcoded JSON plan) just to test the frontend flow.
+7.  Create the results display page (`/plan/[id]`) that reads the mock data and renders it nicely. Ensure the layout flips to RTL when the content is Arabic.
+
+**Focus on:**
+*   Clean, component-based architecture.
+*   Fully responsive design (mobile-first).
+*   RTL support for Arabic layout (using `dir="rtl"` in the HTML).
+PHASE 2
+**Phase 2: Integrate Real AI Models**
+
+Now, replace the mock data with real AI calls. We will use the Vercel AI SDK.
+
+1.  **Install the necessary packages:**
+    *   `npm i ai @ai-sdk/google @ai-sdk/anthropic`
+
+2.  **Set up API keys as environment variables:**
+    *   `GOOGLE_GENERATIVE_AI_API_KEY=your_key`
+    *   `ANTHROPIC_API_KEY=your_key`
+
+3.  **Implement the prompts:**
+    *   Create a file `lib/prompts.ts`.
+    *   Create a function `buildPrompt(goal: string, language: string, complexity: string): string` that returns a detailed prompt.
+    *   The prompt MUST instruct the AI to return a valid JSON object. Here is a perfect prompt template to use for Claude (adapt for Gemini):
+
+4.  **Modify the `/api/generate-plan` route:**
+*   Read the `model` selected by the user from the request body.
+*   If `model` is `GEMINI`, use `google.gemini-1.5-flash` and the prompt.
+*   If `model` is `CLAUDE`, use `anthropic.claude-3-5-sonnet-20241022` and the prompt.
+*   Use the `generateObject` function from the Vercel AI SDK (if available) or `generateText` and parse the JSON. Implement robust error handling for when the AI returns bad JSON.
+*   Save the successfully generated plan to the database (PostgreSQL) using Prisma, associating it with the logged-in user.
+*   Return the plan ID to the frontend to redirect the user to `/plan/[id]`.
+
+5.  **On the `/plan/[id]` page:**
+*   Fetch the plan data from the database based on the ID.
+*   Parse the `generatedContent` JSON field.
+*   Render the plan beautifully using Tailwind. Use cards for each day, progress bars, etc.
+*   If the plan's language is Arabic (`plan.language === 'AR'`), set `dir="rtl"` on the main container.
+PHASE 3
+**Phase 3: Implement Unique, Prize-Worthy Features**
+
+The basic app works. Now we make it unforgettable.
+
+**Feature A: The "Model Face-Off"**
+1.  On the input page, add a new toggle: "Model Face-Off Mode".
+2.  If enabled, when the user clicks "Generate", the backend calls BOTH Gemini and Claude simultaneously using Promise.all().
+3.  The results page (`/plan/compare/[id]`) then shows the two plans side-by-side (split screen).
+4.  Allow the user to vote on which plan they like better and save their favorite to their profile. This generates valuable data for the co-creation program.
+
+**Feature B: AI-Powered "Dream Visualization"**
+1.  Use the AI model to generate a simple visual representation of the user's dream.
+2.  After the plan is generated, take the `weekTitle` or the overall goal and use an image generation model (like DALL-E via the Vercel AI SDK) to create a 16:9 hero image for the plan.
+3.  Display this image at the top of the plan page. (e.g., "Your dream visualized").
+4.  *Prompt for image:* "A cinematic, inspiring scene representing the feeling of achieving this goal: [User's Goal]. High detail, motivational style."
+
+**Feature C: Export & Share**
+1.  Add a button on the plan page: "Export as PDF" (using a library like jsPDF or react-pdf).
+2.  Add a button: "Share Plan" that copies a unique public link to the plan (make sure to have a setting for public/private plans in the user profile for privacy).
+PHASE 4
+**Phase 4: Production Readiness & Submission**
+
+1.  **Database Migration:** Switch from SQLite to a production PostgreSQL database (like Neon.tech or Vercel Postgres). Update the `DATABASE_URL` in your environment variables.
+
+2.  **Testing:**
+    *   Thoroughly test the RTL layout in Arabic.
+    *   Test with both AI models.
+    *   Test the "Face-Off" feature.
+    *   Ensure all error states are handled gracefully.
+
+3.  **Deployment:**
+    *   Prepare the project for deployment. Run `npm run build` and fix any linting errors.
+    *   Guide me through deploying this project to Vercel (as it's the best platform for Next.js). Connect my GitHub repository to Vercel and set the environment variables.
+
+4.  **Co-creation Program Submission:**
+    *   Once deployed and live, help me draft the submission for the Antigravity Co-creation Program.
+    *   The submission text should highlight:
+        *   The innovative use of multiple AI models.
+        *   The seamless bilingual support (AR/EN) as a key feature for a global audience.
+        *   The unique "Model Face-Off" feature.
+        *   A link to the live, deployed application.
+        *   A link to the public GitHub repository.ِِ
