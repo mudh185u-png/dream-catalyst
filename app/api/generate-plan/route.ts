@@ -31,17 +31,25 @@ export async function POST(req: Request) {
 
         try {
             if (model === 'GEMINI') {
-                const result = await generateText({
-                    model: google('gemini-1.5-flash'),
-                    prompt: promptText,
-                })
-                generatedContentText = result.text;
+                if (process.env.GOOGLE_GENERATIVE_AI_API_KEY === 'mock_key') {
+                    generatedContentText = getMockPlanJson(language);
+                } else {
+                    const result = await generateText({
+                        model: google('gemini-1.5-flash'),
+                        prompt: promptText,
+                    })
+                    generatedContentText = result.text;
+                }
             } else {
-                const result = await generateText({
-                    model: anthropic('claude-3-5-sonnet-20241022'),
-                    prompt: promptText,
-                })
-                generatedContentText = result.text;
+                if (process.env.ANTHROPIC_API_KEY === 'mock_key') {
+                    generatedContentText = getMockPlanJson(language);
+                } else {
+                    const result = await generateText({
+                        model: anthropic('claude-3-5-sonnet-20241022'),
+                        prompt: promptText,
+                    })
+                    generatedContentText = result.text;
+                }
             }
 
             // Cleanup JSON payload to ensure safe parsing later by stripping markdown backticks
@@ -70,4 +78,17 @@ export async function POST(req: Request) {
         console.error(error)
         return NextResponse.json({ error: "Something went wrong" }, { status: 500 })
     }
+}
+function getMockPlanJson(language: string) {
+    const isAr = language === 'AR';
+    return JSON.stringify({
+        weekTitle: isAr ? "أسبوع الإنجاز المذهل المبدئي" : "Initial Incredible Achievement Week",
+        days: Array.from({ length: 7 }).map((_, i) => ({
+            day: i + 1,
+            title: isAr ? `اليوم ${i + 1}: انطلاقة مميزة` : `Day ${i + 1}: Special Start`,
+            tasks: isAr ? ["مهمة افتراضية 1", "مهمة افتراضية 2", "مهمة افتراضية 3"] : ["Mock Task 1", "Mock Task 2", "Mock Task 3"],
+            resource: "https://example.com",
+            quote: isAr ? "النجاح يبدأ بخطوة صغيرة." : "Success begins with a small step."
+        }))
+    });
 }

@@ -20,8 +20,8 @@ export async function POST(req: Request) {
 
         // Call BOTH models concurrently
         const [geminiResult, claudeResult] = await Promise.all([
-            generateText({ model: google('gemini-1.5-flash'), prompt: promptText }).catch(e => ({ text: "{}" })),
-            generateText({ model: anthropic('claude-3-5-sonnet-20241022'), prompt: promptText }).catch(e => ({ text: "{}" }))
+            process.env.GOOGLE_GENERATIVE_AI_API_KEY === 'mock_key' ? Promise.resolve({ text: getMockPlanJson(language) }) : generateText({ model: google('gemini-1.5-flash'), prompt: promptText }).catch(e => ({ text: getMockPlanJson(language) })),
+            process.env.ANTHROPIC_API_KEY === 'mock_key' ? Promise.resolve({ text: getMockPlanJson(language) }) : generateText({ model: anthropic('claude-3-5-sonnet-20241022'), prompt: promptText }).catch(e => ({ text: getMockPlanJson(language) }))
         ])
 
         const cleanGemini = geminiResult.text.replace(/```json/g, "").replace(/```/g, "").trim()
@@ -45,4 +45,18 @@ export async function POST(req: Request) {
         console.error(error)
         return NextResponse.json({ error: "Failure generating face-off." }, { status: 500 })
     }
+}
+
+function getMockPlanJson(language: string) {
+    const isAr = language === 'AR';
+    return JSON.stringify({
+        weekTitle: isAr ? "أسبوع الإنجاز المذهل المبدئي" : "Initial Incredible Achievement Week",
+        days: Array.from({ length: 7 }).map((_, i) => ({
+            day: i + 1,
+            title: isAr ? `اليوم ${i + 1}: انطلاقة مميزة` : `Day ${i + 1}: Special Start`,
+            tasks: isAr ? ["مهمة افتراضية 1", "مهمة افتراضية 2", "مهمة افتراضية 3"] : ["Mock Task 1", "Mock Task 2", "Mock Task 3"],
+            resource: "https://example.com",
+            quote: isAr ? "النجاح يبدأ بخطوة صغيرة." : "Success begins with a small step."
+        }))
+    });
 }
