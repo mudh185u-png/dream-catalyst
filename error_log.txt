@@ -1,0 +1,16 @@
+
+Invalid `prisma.user.create()` invocation in
+C:\Users\mudh55\Desktop\dream-catalyst\test-db.js:6:27
+
+  3 const prisma = new PrismaClient();
+  4 async function main() {
+  5     try {
+→ 6         await prisma.user.create(
+error: Error validating datasource `db`: the URL must start with the protocol `file:`.
+  -->  schema.prisma:10
+   | 
+ 9 |   provider = "sqlite"
+10 |   url      = env("DATABASE_URL")
+   | 
+
+Validation Error Count: 1
